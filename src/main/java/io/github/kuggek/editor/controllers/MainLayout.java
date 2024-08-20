@@ -2,7 +2,15 @@ package io.github.kuggek.editor.controllers;
 
 import static java.awt.event.KeyEvent.VK_1;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+
 import javax.swing.SwingUtilities;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import io.github.kuggek.editor.elements.GLPanel;
 import io.github.kuggek.editor.elements.assets.AssetInspector;
@@ -10,6 +18,9 @@ import io.github.kuggek.editor.elements.gameobject.GameObjectInspector;
 import io.github.kuggek.editor.elements.gamescene.GameSceneInspector;
 import io.github.kuggek.editor.misc.EditorCamera;
 import io.github.kuggek.engine.GameEngine;
+import io.github.kuggek.engine.core.PathUtils;
+import io.github.kuggek.engine.core.config.EngineProjectConfiguration;
+import io.github.kuggek.engine.core.json.GameSceneAdapters;
 import io.github.kuggek.engine.ecs.GameObject;
 import io.github.kuggek.engine.ecs.GameScene;
 import io.github.kuggek.engine.rendering.objects.Camera;
@@ -90,6 +101,8 @@ public class MainLayout {
     };
     private Thread renderThread;
 
+    private Gson gson;
+
     @FXML
     public void initialize() {
         // Editor Camera
@@ -123,6 +136,26 @@ public class MainLayout {
         gameSceneInspector.setOnGameObjectToggled(e -> {
             if (gameObjectInspector.getSelectedGameObject() == e.getSource()) {
                 gameObjectInspector.selectGameObject((GameObject) e.getSource());
+            }
+        });
+
+        // Menu Bar
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        GameSceneAdapters.registerAdapters(gsonBuilder);
+        gson = gsonBuilder.create();
+
+        menuBarController.setOnSaveAction(e -> {
+            GameScene currentScene = engine.getCurrentScene();
+            if (currentScene == null) {
+                return;
+            }
+            String json = gson.toJson(currentScene);
+            String path = EngineProjectConfiguration.get().getPaths().getScenesPath();
+            path = PathUtils.concatenateAndFormat(path, currentScene.getName() + ".json");
+            try {
+                Files.write(Paths.get(path), json.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            } catch (IOException e1) {
+                System.out.println(e1.getMessage());
             }
         });
     }
