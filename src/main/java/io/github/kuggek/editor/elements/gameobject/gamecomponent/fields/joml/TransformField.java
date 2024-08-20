@@ -52,4 +52,18 @@ public class TransformField extends InputField {
     public Transform getValue() {
         return transform;
     }
+
+    @Override
+    public void disable() {
+        position.disable();
+        rotation.disable();
+        scale.disable();
+    }
+
+    @Override
+    public void enable() {
+        position.enable();
+        rotation.enable();
+        scale.enable();
+    }
 }

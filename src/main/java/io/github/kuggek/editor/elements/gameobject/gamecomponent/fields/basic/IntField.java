@@ -65,4 +65,14 @@ public class IntField extends InputField {
         } 
         textField.setText(value.toString());
     }
+
+    @Override
+    public void disable() {
+        textField.setDisable(true);
+    }
+
+    @Override
+    public void enable() {
+        textField.setDisable(false);
+    }
 }

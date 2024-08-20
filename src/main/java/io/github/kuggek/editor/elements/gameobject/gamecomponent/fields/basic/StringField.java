@@ -9,7 +9,7 @@ import javafx.scene.control.Tooltip;
  */
 public class StringField extends InputField {
     
-    private TextField textField;
+    protected TextField textField;
     
     public StringField() {
         super(String.class);
@@ -34,6 +34,16 @@ public class StringField extends InputField {
 
     public void setValue(String value) {
         textField.setText(value);
+    }
+
+    @Override
+    public void disable() {
+        textField.setDisable(true);
+    }
+
+    @Override
+    public void enable() {
+        textField.setDisable(false);
     }
 
 }

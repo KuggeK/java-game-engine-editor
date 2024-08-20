@@ -74,4 +74,18 @@ public class Vector3fField extends InputField {
     public Vector3f getValue() {
         return vector;
     }
+
+    @Override
+    public void disable() {
+        x.disable();
+        y.disable();
+        z.disable();
+    }
+
+    @Override
+    public void enable() {
+        x.enable();
+        y.enable();
+        z.enable();
+    }
 }

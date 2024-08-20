@@ -29,6 +29,8 @@ public class ComponentUIField extends HBox {
 
     private boolean error = false;
 
+    private boolean enabled = true;
+
     public ComponentUIField(Field componentField, GameComponent gameComponent) {
         field = componentField;
         component = gameComponent;
@@ -67,5 +69,21 @@ public class ComponentUIField extends HBox {
                 fieldValue.setBorder(Border.stroke(Color.RED));
             }
         });
+    }
+
+    public void disable() {
+        enabled = false;
+        fieldName.setDisable(true);
+        fieldValue.disable();
+    }
+
+    public void enable() {
+        enabled = true;
+        fieldName.setDisable(false);
+        fieldValue.enable();
+    }
+
+    public boolean isEnabled() {
+        return enabled;
     }
 }

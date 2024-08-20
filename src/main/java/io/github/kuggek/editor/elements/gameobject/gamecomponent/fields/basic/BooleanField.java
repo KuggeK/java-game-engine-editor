@@ -26,4 +26,14 @@ public class BooleanField extends InputField {
             checkBox.setSelected((Boolean) value);
         }
     }
+
+    @Override
+    public void disable() {
+        checkBox.setDisable(true);
+    }
+
+    @Override
+    public void enable() {
+        checkBox.setDisable(false);
+    }
 }

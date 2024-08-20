@@ -10,6 +10,7 @@ public abstract class InputField extends VBox {
 
     private Class<?> type;
     private Object value;
+    private boolean enabled = true;
 
     public final Duration TOOLTIP_SHOW_DELAY = new Duration(100);
 
@@ -37,5 +38,12 @@ public abstract class InputField extends VBox {
         if (onValueChange != null) {
             onValueChange.handle(e);
         }
+    }
+
+    public abstract void disable();
+    public abstract void enable();
+
+    public boolean isEnabled() {
+        return enabled;
     }
 }

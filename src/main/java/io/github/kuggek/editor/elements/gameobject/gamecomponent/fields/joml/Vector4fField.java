@@ -81,4 +81,20 @@ public class Vector4fField extends InputField {
     public Vector4f getValue() {
         return vector;
     }
+
+    @Override
+    public void disable() {
+        x.setDisable(true);
+        y.setDisable(true);
+        z.setDisable(true);
+        w.setDisable(true);
+    }
+
+    @Override
+    public void enable() {
+        x.setDisable(false);
+        y.setDisable(false);
+        z.setDisable(false);
+        w.setDisable(false);
+    }
 }

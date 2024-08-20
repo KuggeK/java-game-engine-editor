@@ -83,4 +83,20 @@ public class QuaternionfField extends InputField {
     public Quaternionf getValue() {
         return quaternion;
     }
+
+    @Override
+    public void disable() {
+        x.disable();
+        y.disable();
+        z.disable();
+        w.disable();
+    }
+
+    @Override
+    public void enable() {
+        x.enable();
+        y.enable();
+        z.enable();
+        w.enable();
+    }
 }

@@ -63,4 +63,14 @@ public class FloatField extends InputField {
     public void setValue(Float value) {
         textField.setText(value.toString());
     }
+
+    @Override
+    public void disable() {
+        textField.setDisable(true);
+    }
+
+    @Override
+    public void enable() {
+        textField.setDisable(false);
+    }
 }
