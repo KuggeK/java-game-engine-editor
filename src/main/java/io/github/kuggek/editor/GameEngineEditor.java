@@ -1,6 +1,11 @@
 package io.github.kuggek.editor;
 
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.util.function.Consumer;
+
+import com.google.gson.Gson;
 
 import io.github.kuggek.editor.controllers.MainLayout;
 import io.github.kuggek.editor.elements.GLPanel;
@@ -22,6 +27,30 @@ public class GameEngineEditor extends Application {
     private GameEngine engine;
     private Scene mainScene;
 
+    private Consumer<File> onChangeProject = (project) -> {
+        try {
+            Gson gson = new Gson();
+            EngineProjectConfiguration newConfiguration;
+            try {
+                newConfiguration = gson.fromJson(new FileReader(project), EngineProjectConfiguration.class);
+                EngineProjectConfiguration.set(newConfiguration);
+                configuration = newConfiguration;
+            } catch (Exception e) {
+                System.out.println("Error loading project configuration: " + e.getMessage());
+                return;
+            }
+            
+            mainLayout.stop();
+            engine.stopGameLoop();
+            engine.initialize(configuration, glPanel);
+            mainLayout.linkToEngine(engine);
+            engine.getSubsystems().getRenderingEngine().render(true);
+            mainLayout.update();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    };
+
     @Override
     public void init() throws Exception {
         configuration = EngineProjectConfiguration.loadProjectConfiguration("defaultProject.json");
@@ -39,6 +68,7 @@ public class GameEngineEditor extends Application {
         engine.initialize(configuration, glPanel);
 
         mainLayout = loadMainLayout();
+        mainLayout.setOnChangeProject(onChangeProject);
         mainLayout.linkToEngine(engine);
         mainLayout.setGameViewContent(glPanel);
 

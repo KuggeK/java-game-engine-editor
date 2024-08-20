@@ -6,12 +6,13 @@
 
 <MenuBar xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/20.0.1" fx:controller="io.github.kuggek.editor.controllers.EditorMenuBar">
   <menus>
-    <Menu fx:id="fileMenu" mnemonicParsing="false" text="File">
+    <Menu fx:id="projectMenu" mnemonicParsing="false" text="Project">
       <items>
-        <MenuItem fx:id="newMI" mnemonicParsing="false" text="New" />
-         <MenuItem fx:id="openMI" mnemonicParsing="false" text="Open" />
-         <MenuItem fx:id="saveMI" mnemonicParsing="false" text="Save" />
+        <MenuItem fx:id="newMI" mnemonicParsing="false" text="New project" />
+         <MenuItem fx:id="openMI" mnemonicParsing="false" text="Open project" />
+         <MenuItem fx:id="saveMI" mnemonicParsing="false" text="Save scene" />
          <MenuItem fx:id="projectSettingsMI" mnemonicParsing="false" text="Project settings" />
+         <Menu fx:id="changeSceneMI" mnemonicParsing="false" text="Change scene" />
       </items>
     </Menu>
       <Menu fx:id="editMenu" mnemonicParsing="false" text="Edit">
