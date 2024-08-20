@@ -25,6 +25,22 @@
       <artifactId>engine</artifactId>
       <version>1.1</version>
     </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-controls</artifactId>
+      <version>22.0.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-swing</artifactId>
+      <version>19</version>
+  </dependency>
+  <!-- https://mvnrepository.com/artifact/org.openjfx/javafx-fxml -->
+  <dependency>
+    <groupId>org.openjfx</groupId>
+    <artifactId>javafx-fxml</artifactId>
+    <version>22.0.1</version>
+  </dependency>
   </dependencies>
 
   <repositories>
@@ -38,11 +54,24 @@
   <build>
     <plugins>
       <plugin>
+        <groupId>org.openjfx</groupId>
+        <artifactId>javafx-maven-plugin</artifactId>
+        <version>0.0.8</version>
+        <configuration> 
+            <mainClass>io.github.kuggek.editor.GameEngineEditor</mainClass>
+            <options>
+              <option>--add-exports java.base/java.lang=ALL-UNNAMED</option>
+                <option>--add-exports java.desktop/sun.awt=ALL-UNNAMED</option>
+                <option>--add-exports java.desktop/sun.java2d=ALL-UNNAMED</option>
+            </options>
+        </configuration>
+    </plugin>
+      <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
         <version>3.2.0</version>
         <configuration>
-          <mainClass>io.github.kuggek.editor.Test</mainClass>
+          <mainClass>io.github.kuggek.editor.GameEngineEditor</mainClass>
           <arguments>
             <argument>defaultProject.json</argument>
           </arguments>
@@ -57,7 +86,7 @@
           <archive>
             <manifest>
               <addClasspath>true</addClasspath>
-              <mainClass>io.github.kuggek.editor.Test</mainClass>
+              <mainClass>io.github.kuggek.editor.GameEngineEditor</mainClass>
             </manifest>
           </archive>
         </configuration>
@@ -71,7 +100,7 @@
             </descriptorRefs>
             <archive>
               <manifest>
-                <mainClass>io.github.kuggek.editor.Test</mainClass>
+                <mainClass>io.github.kuggek.editor.GameEngineEditor</mainClass>
               </manifest>
             </archive>
         </configuration>
