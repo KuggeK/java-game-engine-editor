@@ -7,7 +7,9 @@ import java.util.Set;
 
 import io.github.kuggek.editor.elements.DropDownElement;
 import io.github.kuggek.engine.ecs.GameComponent;
+import io.github.kuggek.engine.ecs.components.ReadableComponentField;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.VBox;
 
@@ -49,6 +51,17 @@ public class ComponentInspector extends DropDownElement<VBox> {
         });
 
         for (var field : GameComponent.getComponentFields(this.component.getClass()).stream().sorted(Comparator.comparing(Field::getName)).toList()) {
+            if (field.isAnnotationPresent(ReadableComponentField.class)) {
+                try {
+                    field.setAccessible(true);
+                    Object value = field.get(component);
+                    ddVBox.getChildren().add(new Label(field.getName() + ": " + value));
+                } catch (IllegalArgumentException | IllegalAccessException e1) {
+                    System.out.println("Error getting field value: " + e1.getMessage());
+                }
+                continue;
+            }
+            
             ComponentUIField fieldUI = new ComponentUIField(field, this.component);
             fields.add(fieldUI);
             ddVBox.getChildren().add(fieldUI);
