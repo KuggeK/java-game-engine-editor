@@ -1,61 +1,44 @@
 package io.github.kuggek.editor;
 
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.function.Consumer;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import io.github.kuggek.editor.controllers.MainLayout;
 import io.github.kuggek.editor.elements.GLPanel;
 import io.github.kuggek.engine.GameEngine;
+import io.github.kuggek.engine.core.PathUtils;
 import io.github.kuggek.engine.core.assets.AssetManager;
 import io.github.kuggek.engine.core.assets.SQLiteAssetManager;
 import io.github.kuggek.engine.core.assets.DefaultAssets;
 import io.github.kuggek.engine.core.config.EngineProjectConfiguration;
+import io.github.kuggek.engine.core.json.GameSceneAdapters;
+import io.github.kuggek.engine.ecs.GameScene;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-public class GameEngineEditor extends Application {
+public class GameEngineEditor extends Application implements GameEngineManager {
     
     private EngineProjectConfiguration configuration;
     private MainLayout mainLayout;
     private GLPanel glPanel;
     private GameEngine engine;
     private Scene mainScene;
-
-    private Consumer<File> onChangeProject = (project) -> {
-        try {
-            Gson gson = new Gson();
-            EngineProjectConfiguration newConfiguration;
-            try {
-                newConfiguration = gson.fromJson(new FileReader(project), EngineProjectConfiguration.class);
-                EngineProjectConfiguration.set(newConfiguration);
-                configuration = newConfiguration;
-            } catch (Exception e) {
-                System.out.println("Error loading project configuration: " + e.getMessage());
-                return;
-            }
-            
-            mainLayout.stop();
-            engine.stopGameLoop();
-            engine.initialize(configuration, glPanel);
-            mainLayout.linkToEngine(engine);
-            engine.getSubsystems().getRenderingEngine().render(true);
-            mainLayout.update();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    };
+    private Gson gson;
 
     @Override
     public void init() throws Exception {
         configuration = EngineProjectConfiguration.loadProjectConfiguration("defaultProject.json");
         AssetManager assetManager = SQLiteAssetManager.getInstance();
         DefaultAssets.loadDefaultAssets(assetManager);
+        setGameEngineManager(this);
     }
 
     @Override
@@ -67,8 +50,13 @@ public class GameEngineEditor extends Application {
         engine = new GameEngine();
         engine.initialize(configuration, glPanel);
 
+        // Initialize gson
+        GsonBuilder builder = new GsonBuilder();
+        GameSceneAdapters.registerAdapters(builder);
+        gson = builder.create();
+
+        // Load main layout
         mainLayout = loadMainLayout();
-        mainLayout.setOnChangeProject(onChangeProject);
         mainLayout.linkToEngine(engine);
         mainLayout.setGameViewContent(glPanel);
 
@@ -101,4 +89,87 @@ public class GameEngineEditor extends Application {
         }
     }
 
+    @Override
+    public GameEngine initializeEngine() {
+        return engine;
+    }
+
+    @Override
+    public GameScene loadScene(String sceneName) {
+        String path = EngineProjectConfiguration.get().getPaths().getScenesPath();
+        path = PathUtils.concatenateAndFormat(path, sceneName + ".json");
+        try {
+            String json = Files.readString(Paths.get(path));
+            GameScene newScene = gson.fromJson(json, GameScene.class);
+            engine.setupScene(newScene);
+            mainLayout.setupScene();
+            return newScene;
+        } catch (IOException e1) {
+            System.out.println(e1.getMessage());
+            return null;
+        }
+    }
+
+    @Override
+    public boolean saveCurrentScene() {
+        String json = gson.toJson(engine.getCurrentScene());
+        String path = EngineProjectConfiguration.get().getPaths().getScenesPath();
+        path = PathUtils.concatenateAndFormat(path, engine.getCurrentScene().getName() + ".json");
+        try {
+            Files.write(Paths.get(path), json.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            return true;
+        } catch (IOException e1) {
+            System.out.println(e1.getMessage());
+            return false;
+        }
+    }
+
+    @Override
+    public boolean saveCurrentSceneAs(String sceneName) {
+        engine.getCurrentScene().setName(sceneName);
+        return saveCurrentScene();
+    }
+
+    @Override
+    public GameEngine openProject(String projectPath) {
+        try {
+            FileReader reader = new FileReader(projectPath);
+            EngineProjectConfiguration project = gson.fromJson(reader, EngineProjectConfiguration.class);
+            reader.close();
+            return openProject(project);
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
+    }
+
+    private GameEngine openProject(EngineProjectConfiguration project) throws IOException {
+        configuration = project;
+        EngineProjectConfiguration.set(project);
+        engine.initialize(configuration, glPanel);
+        mainLayout.setupScene();
+        return engine;
+    }
+
+    @Override
+    public boolean saveCurrentProject() {
+        try {
+            String json = gson.toJson(configuration);
+            Files.write(Paths.get(configuration.getProjectName() + ".json"), json.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            return true;
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+            return false;
+        }
+    }
+
+    // Static stuff
+    private static GameEngineEditor instance;
+    public static GameEngineManager getGameEngineManager() {
+        return instance;
+    }
+
+    private static void setGameEngineManager(GameEngineEditor instance) {
+        GameEngineEditor.instance = instance;
+    }
 }

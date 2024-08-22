@@ -2,17 +2,7 @@ package io.github.kuggek.editor.controllers;
 
 import static java.awt.event.KeyEvent.VK_1;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.function.Consumer;
-
 import javax.swing.SwingUtilities;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import io.github.kuggek.editor.elements.GLPanel;
 import io.github.kuggek.editor.elements.assets.AssetInspector;
@@ -20,9 +10,6 @@ import io.github.kuggek.editor.elements.gameobject.GameObjectInspector;
 import io.github.kuggek.editor.elements.gamescene.GameSceneInspector;
 import io.github.kuggek.editor.misc.EditorCamera;
 import io.github.kuggek.engine.GameEngine;
-import io.github.kuggek.engine.core.PathUtils;
-import io.github.kuggek.engine.core.config.EngineProjectConfiguration;
-import io.github.kuggek.engine.core.json.GameSceneAdapters;
 import io.github.kuggek.engine.ecs.GameObject;
 import io.github.kuggek.engine.ecs.GameScene;
 import io.github.kuggek.engine.rendering.objects.Camera;
@@ -38,7 +25,6 @@ import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.layout.VBox;
 
 public class MainLayout {
-
     @FXML 
     private VBox root;
 
@@ -106,11 +92,7 @@ public class MainLayout {
     };
     private Thread renderThread;
 
-    private Gson gson;
-
     private Alert changeSceneAlert;
-
-    private Consumer<File> onProjectChange;
 
     @FXML
     public void initialize() {
@@ -148,13 +130,6 @@ public class MainLayout {
             }
         });
 
-        // Menu Bar
-        GsonBuilder gsonBuilder = new GsonBuilder();
-        GameSceneAdapters.registerAdapters(gsonBuilder);
-        gson = gsonBuilder.create();
-
-        menuBarController.setOnSaveAction(e -> saveScene());
-
         changeSceneAlert = new Alert(Alert.AlertType.CONFIRMATION);
         changeSceneAlert.setTitle("Save Scene");
         changeSceneAlert.setHeaderText("Do you want to save the current scene before changing scenes?");
@@ -165,65 +140,6 @@ public class MainLayout {
         ButtonType cancelButton = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
 
         changeSceneAlert.getButtonTypes().setAll(saveButton, dontSaveButton, cancelButton);
-
-        menuBarController.setOnChangeScene(e -> {
-            changeSceneAlert.showAndWait().ifPresent(response -> {
-                if (response == saveButton) {
-                    saveScene();
-                } else if (response == cancelButton) {
-                    return;
-                }
-
-                stop();
-                String sceneName = (String) e.getSource();
-                GameScene scene = loadScene(sceneName);
-                if (scene != null) {
-                    engine.setupScene(scene);
-                    setupScene();
-                    renderThread = new Thread(renderTask);
-                    renderThread.start();
-                }
-            });
-        });
-
-        menuBarController.setOnOpenProject(e -> {
-            if (onProjectChange != null) {
-                onProjectChange.accept((File) e.getSource());
-            }
-        });
-    }
-
-    public void setOnChangeProject(Consumer<File> onProjectChange) {
-        this.onProjectChange = onProjectChange;
-    }
-
-    private boolean saveScene() {
-        GameScene currentScene = engine.getCurrentScene();
-        if (currentScene == null) {
-            return false;
-        }
-        String json = gson.toJson(currentScene);
-        String path = EngineProjectConfiguration.get().getPaths().getScenesPath();
-        path = PathUtils.concatenateAndFormat(path, currentScene.getName() + ".json");
-        try {
-            Files.write(Paths.get(path), json.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-            return true;
-        } catch (IOException e1) {
-            System.out.println(e1.getMessage());
-            return false;
-        }
-    }
-
-    private GameScene loadScene(String sceneName) {
-        String path = EngineProjectConfiguration.get().getPaths().getScenesPath();
-        path = PathUtils.concatenateAndFormat(path, sceneName + ".json");
-        try {
-            String json = Files.readString(Paths.get(path));
-            return gson.fromJson(json, GameScene.class);
-        } catch (IOException e1) {
-            System.out.println(e1.getMessage());
-            return null;
-        }
     }
 
     public void setGameViewContent(GLPanel glPanel) {
@@ -281,6 +197,8 @@ public class MainLayout {
         gameSceneInspector.setGameObjectManager(engine.getSubsystems());
 
         gameObjectInspector.setToEmpty();
+
+        menuBarController.update();
 
         gameCamera = engine.getSubsystems().getRenderingSettings().getActiveCamera();
         switchToEditorCamera();

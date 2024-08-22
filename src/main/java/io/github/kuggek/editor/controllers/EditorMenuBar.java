@@ -2,12 +2,14 @@ package io.github.kuggek.editor.controllers;
 
 import java.io.File;
 
+import io.github.kuggek.editor.GameEngineEditor;
+import io.github.kuggek.editor.GameEngineManager;
 import io.github.kuggek.editor.elements.gameobject.GameComponentTypes;
 import io.github.kuggek.engine.core.config.EngineProjectConfiguration;
 import io.github.kuggek.engine.scripting.ScriptLoader;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
@@ -32,9 +34,8 @@ public class EditorMenuBar extends MenuBar {
             @FXML private MenuItem compileScriptsMI;
         @FXML private MenuItem preferencesMI;
 
-    private EventHandler<ActionEvent> onSaveAction;
-    private EventHandler<ActionEvent> onChangeScene;
-    private EventHandler<ActionEvent> onOpenProject;
+
+    private Alert saveConfirmation = new Alert(Alert.AlertType.CONFIRMATION, "Do you want to save the current scene?", ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
 
     public EditorMenuBar() {
         super();
@@ -45,6 +46,8 @@ public class EditorMenuBar extends MenuBar {
 
     @FXML
     public void initialize() {
+        GameEngineManager gameEngineManager = GameEngineEditor.getGameEngineManager();
+
         newMI.setOnAction(e -> System.out.println("New"));
         
         openMI.setOnAction(e ->  {
@@ -53,21 +56,18 @@ public class EditorMenuBar extends MenuBar {
             projectChooser.setInitialDirectory(new File("."));
             projectChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Project Files", "*.json"));
             File project = projectChooser.showOpenDialog(null);
-            if (project != null && onOpenProject != null) {
-                onOpenProject.handle(new ActionEvent(project, openMI));
+            if (project != null) {
+                gameEngineManager.openProject(project.getAbsolutePath());
             }
         });
 
-        saveMI.setOnAction(e -> {
-            if (onSaveAction != null) onSaveAction.handle(e);
-        });
+        saveMI.setOnAction(e -> gameEngineManager.saveCurrentScene());
+
         projectSettingsMI.setOnAction(e -> System.out.println("Project Settings"));
 
         EngineProjectConfiguration.get().getScenes().forEach(scene -> {
             MenuItem item = new MenuItem(scene);
-            item.setOnAction(event -> {
-                if (onChangeScene != null) onChangeScene.handle(new ActionEvent(scene, item));
-            });
+            item.setOnAction(e -> gameEngineManager.loadScene(scene));
             changeSceneMI.getItems().add(item);
         });
 
@@ -76,29 +76,27 @@ public class EditorMenuBar extends MenuBar {
             ScriptLoader.addJarToClasspath("scripts.jar");
             GameComponentTypes.addScripts();
         });
+
         preferencesMI.setOnAction(e -> System.out.println("Preferences"));
 
-
-    }
-
-    public void setOnSaveAction(EventHandler<ActionEvent> onSaveAction) {
-        this.onSaveAction = onSaveAction;
-    }
-
-    public void setOnChangeScene(EventHandler<ActionEvent> onChangeScene) {
-        this.onChangeScene = onChangeScene;
-    }
-
-    public void setOnOpenProject(EventHandler<ActionEvent> onOpenProject) {
-        this.onOpenProject = onOpenProject;
+        update();
     }
 
     public void update() {
         changeSceneMI.getItems().clear();
+        GameEngineManager gameEngineManager = GameEngineEditor.getGameEngineManager();
         EngineProjectConfiguration.get().getScenes().forEach(scene -> {
             MenuItem item = new MenuItem(scene);
-            item.setOnAction(event -> {
-                if (onChangeScene != null) onChangeScene.handle(new ActionEvent(scene, item));
+            item.setOnAction(e -> {
+                saveConfirmation.showAndWait().ifPresent(response -> {
+                    if (response == ButtonType.CANCEL) {
+                        return;
+                    }
+                    if (response == ButtonType.YES) {
+                        gameEngineManager.saveCurrentScene();
+                    }
+                    gameEngineManager.loadScene(scene);
+                });
             });
             changeSceneMI.getItems().add(item);
         });
