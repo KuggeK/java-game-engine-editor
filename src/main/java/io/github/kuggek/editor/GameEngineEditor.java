@@ -1,7 +1,8 @@
 package io.github.kuggek.editor;
 
-import java.io.FileReader;
+import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -12,11 +13,12 @@ import com.google.gson.GsonBuilder;
 import io.github.kuggek.editor.controllers.MainLayout;
 import io.github.kuggek.editor.elements.GLPanel;
 import io.github.kuggek.engine.GameEngine;
-import io.github.kuggek.engine.core.PathUtils;
 import io.github.kuggek.engine.core.assets.AssetManager;
 import io.github.kuggek.engine.core.assets.SQLiteAssetManager;
 import io.github.kuggek.engine.core.assets.DefaultAssets;
+import io.github.kuggek.engine.core.assets.ResourceManager;
 import io.github.kuggek.engine.core.config.EngineProjectConfiguration;
+import io.github.kuggek.engine.core.config.ProjectPaths;
 import io.github.kuggek.engine.core.json.GameSceneAdapters;
 import io.github.kuggek.engine.ecs.GameScene;
 import javafx.application.Application;
@@ -35,7 +37,7 @@ public class GameEngineEditor extends Application implements GameEngineManager {
 
     @Override
     public void init() throws Exception {
-        configuration = EngineProjectConfiguration.loadProjectConfiguration("defaultProject.json");
+        configuration = EngineProjectConfiguration.loadProjectConfiguration("./");
         AssetManager assetManager = SQLiteAssetManager.getInstance();
         DefaultAssets.loadDefaultAssets(assetManager);
         setGameEngineManager(this);
@@ -96,8 +98,7 @@ public class GameEngineEditor extends Application implements GameEngineManager {
 
     @Override
     public GameScene loadScene(String sceneName) {
-        String path = EngineProjectConfiguration.get().getPaths().getScenesPath();
-        path = PathUtils.concatenateAndFormat(path, sceneName + ".json");
+        String path = getScenePath(sceneName);
         try {
             String json = Files.readString(Paths.get(path));
             GameScene newScene = gson.fromJson(json, GameScene.class);
@@ -113,8 +114,7 @@ public class GameEngineEditor extends Application implements GameEngineManager {
     @Override
     public boolean saveCurrentScene() {
         String json = gson.toJson(engine.getCurrentScene());
-        String path = EngineProjectConfiguration.get().getPaths().getScenesPath();
-        path = PathUtils.concatenateAndFormat(path, engine.getCurrentScene().getName() + ".json");
+        String path = getScenePath(engine.getCurrentScene().getName());
         try {
             Files.write(Paths.get(path), json.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
             return true;
@@ -130,15 +130,21 @@ public class GameEngineEditor extends Application implements GameEngineManager {
         return saveCurrentScene();
     }
 
+    private String getScenePath(String sceneName) {
+        return ProjectPaths.concatenateAndFormat(
+            configuration.getProjectAbsolutePath(),
+            ProjectPaths.SCENES_PATH, 
+            sceneName + ".json"
+        );
+    }
+
     @Override
     public GameEngine openProject(String projectPath) {
         try {
-            FileReader reader = new FileReader(projectPath);
-            EngineProjectConfiguration project = gson.fromJson(reader, EngineProjectConfiguration.class);
-            reader.close();
+            EngineProjectConfiguration project = EngineProjectConfiguration.loadProjectConfiguration(projectPath);
             return openProject(project);
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
+        } catch (IOException | URISyntaxException e) {
+            e.printStackTrace();
             return null;
         }
     }
@@ -155,10 +161,47 @@ public class GameEngineEditor extends Application implements GameEngineManager {
     public boolean saveCurrentProject() {
         try {
             String json = gson.toJson(configuration);
-            Files.write(Paths.get(configuration.getProjectName() + ".json"), json.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            String path = ProjectPaths.concatenateAndFormat(
+                configuration.getProjectAbsolutePath(),
+                ProjectPaths.PROJECT_CONFIG_PATH
+            );
+            Files.write(Paths.get(path), json.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
             return true;
         } catch (IOException e) {
             System.out.println(e.getMessage());
+            return false;
+        }
+    }
+
+    @Override
+    public boolean createProject(EngineProjectConfiguration configuration, String projectParentPath, String projectFolderName) {
+        try {
+            // Create project directories
+            String projectPath = ProjectPaths.concatenateAndFormat(projectParentPath, projectFolderName);
+            new File(projectPath).mkdirs();
+            new File(ProjectPaths.concatenateAndFormat(projectPath, ProjectPaths.SCENES_PATH)).mkdirs();
+            new File(ProjectPaths.concatenateAndFormat(projectPath, ProjectPaths.SCRIPT_DEPENDENCIES_PATH)).mkdirs();
+            new File(ProjectPaths.concatenateAndFormat(projectPath, ".assets")).mkdirs();
+
+            String json = gson.toJson(configuration);
+            String path = ProjectPaths.concatenateAndFormat(
+                projectPath,
+                ProjectPaths.PROJECT_CONFIG_PATH
+            );
+
+            Files.write(Paths.get(path), json.getBytes(), StandardOpenOption.CREATE_NEW);
+
+            String initialScene = ResourceManager.readFile("/default/newSceneTemplate.json", GameEngineEditor.class);
+            System.out.println("Scene: " + initialScene);
+            String scenePath = ProjectPaths.concatenateAndFormat(
+                projectPath,
+                ProjectPaths.SCENES_PATH,
+                "NewScene.json"
+            );
+            Files.write(Paths.get(scenePath), initialScene.getBytes(), StandardOpenOption.CREATE_NEW);
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
             return false;
         }
     }

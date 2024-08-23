@@ -1,0 +1,16 @@
+{
+    "projectName": "New project",
+    "projectDescription": "A new, blank project",
+    "projectVersion": "1.0-SNAPSHOT",
+    "projectAuthor": "",
+    "scenes": [
+        "NewScene"
+    ],
+    "initialSceneName": "NewScene",
+    "width": 800,
+    "height": 600,
+    "title": "New project",
+    "fullscreen": false,
+    "resizable": true,
+    "targetFPS": 120
+}

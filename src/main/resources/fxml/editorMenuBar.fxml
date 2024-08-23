@@ -4,25 +4,24 @@
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
 
-<MenuBar xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/20.0.1" fx:controller="io.github.kuggek.editor.controllers.EditorMenuBar">
+<MenuBar xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.kuggek.editor.controllers.EditorMenuBar">
   <menus>
     <Menu fx:id="projectMenu" mnemonicParsing="false" text="Project">
       <items>
-        <MenuItem fx:id="newMI" mnemonicParsing="false" text="New project" />
-         <MenuItem fx:id="openMI" mnemonicParsing="false" text="Open project" />
-         <MenuItem fx:id="saveMI" mnemonicParsing="false" text="Save scene" />
-         <MenuItem fx:id="projectSettingsMI" mnemonicParsing="false" text="Project settings" />
-         <Menu fx:id="changeSceneMI" mnemonicParsing="false" text="Change scene" />
-      </items>
-    </Menu>
-      <Menu fx:id="editMenu" mnemonicParsing="false" text="Edit">
-         <items>
+        <MenuItem fx:id="newProjectMI" mnemonicParsing="false" text="New project..." />
+         <MenuItem fx:id="openProjectMI" mnemonicParsing="false" text="Open project..." />
+         <MenuItem fx:id="projectSettingsMI" mnemonicParsing="false" text="Project settings..." />
             <Menu fx:id="scriptsMenu" mnemonicParsing="false" text="Scripts">
                <items>
                   <MenuItem fx:id="compileScriptsMI" mnemonicParsing="false" text="Compile scripts" />
                </items>
             </Menu>
-            <MenuItem fx:id="preferencesMI" mnemonicParsing="false" text="Preferences" />
+      </items>
+    </Menu>
+      <Menu fx:id="sceneMenu" mnemonicParsing="false" text="Scene">
+         <items>
+         <MenuItem fx:id="saveSceneMI" mnemonicParsing="false" text="Save scene" />
+         <Menu fx:id="changeSceneMI" mnemonicParsing="false" text="Change scene" />
          </items>
       </Menu>
   </menus>

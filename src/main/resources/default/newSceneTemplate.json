@@ -1,0 +1,131 @@
+{
+    "ID": 1,
+    "name": "NewScene",
+    "gameObjects": [
+        {
+            "ID": 3,
+            "name": "Light",
+            "transform": {
+                "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            },
+            "tags": [],
+            "disabled": false,
+            "components": {
+                "io.github.kuggek.engine.ecs.components.rendering.lights.DirectionalLightComponent": {
+                    "specular": [
+                        0.5,
+                        0.5,
+                        0.5,
+                        1.0
+                    ],
+                    "ambient": [
+                        0.5,
+                        0.5,
+                        0.5,
+                        1.0
+                    ],
+                    "diffuse": [
+                        0.75,
+                        0.75,
+                        0.75,
+                        1.0
+                    ],
+                    "activeOnStart": true,
+                    "direction": [
+                        -0.57735026,
+                        -0.57735026,
+                        -0.57735026
+                    ]
+                }
+            },
+            "children": []
+        },
+        {
+            "ID": 2,
+            "name": "Camera",
+            "transform": {
+                "position": [
+                    0.0,
+                    2.0,
+                    4.0
+                ],
+                "rotation": [
+                    -0.14906392,
+                    0.0,
+                    0.0,
+                    0.9888276
+                ],
+                "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            },
+            "tags": [],
+            "disabled": false,
+            "components": {
+                "io.github.kuggek.engine.ecs.components.rendering.CameraComponent": {
+                    "far": 1000.0,
+                    "orthographic": false,
+                    "near": 0.01,
+                    "fov": 70.0,
+                    "activeOnStart": true
+                }
+            },
+            "children": []
+        },
+        {
+            "ID": 1,
+            "name": "Ball",
+            "transform": {
+                "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            },
+            "tags": [],
+            "disabled": false,
+            "components": {
+                "io.github.kuggek.engine.ecs.components.rendering.RenderInstanceComponent": {
+                    "normalMapEnabled": false,
+                    "textureParameters": {},
+                    "texturingEnabled": false,
+                    "lit": true,
+                    "normalMapID": -1,
+                    "castsShadows": true,
+                    "textureID": -1,
+                    "materialID": 2,
+                    "meshID": 2
+                }
+            },
+            "children": []
+        }
+    ]
+}
